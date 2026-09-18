@@ -11,6 +11,8 @@ def find_password():
             data = json.load(data_file)
     except FileNotFoundError:
         messagebox.showerror(title="Error", message="No Data File Found")
+    except json.decoder.JSONDecodeError:
+        messagebox.showerror(title="Error", message="No Data File Found")
     else:
         if search in data:
             messagebox.showinfo(title="Password Found",message=f"Website Name: {search}"
@@ -25,10 +27,12 @@ def generate_password():
                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     symbols = ['!', '#', '$', '%', '&', '(', ')', '*', '+']
-
-    nr_letters = random.randint(8, 10)
-    nr_symbols = random.randint(2, 4)
-    nr_numbers = random.randint(2, 4)
+    Letters = Letter_spinbox.get()
+    Numbers = Num_spinbox.get()
+    Symbols = Symbol_spinbox.get()
+    nr_letters = int(Letters)
+    nr_symbols = int(Symbols)
+    nr_numbers = int(Numbers)
 
     password_list = [random.choice(letters) for char in range(nr_letters)]
 
@@ -40,14 +44,18 @@ def generate_password():
 
     password = "".join(password_list)
 
+    encrypt = ["*" for char in password]
+
     password_entry.delete(0, END)
-    password_entry.insert(0, password)
+    password_entry.insert(0, encrypt)
     pyperclip.copy(password)
+    return password
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save_password():
     website = website_entry.get()
     username = username_entry.get()
-    password = password_entry.get()
+    password = generate_password()
+    encrypted = password_entry.get()
     new_data = {
         website:{
             "email":username,
@@ -58,7 +66,7 @@ def save_password():
         messagebox.showerror(title="Error",message="Please fill all fields")
     else:
         is_ok = messagebox.askokcancel(title="Website",message=f"these are the details entered:\n Website: {website},"
-                                                       f"\n Username: {username},\n Password: {password}, "
+                                                       f"\n Username: {username},\n Password: {encrypted}, "
                                                        f"Are you sure you want to continue?")
         if is_ok:
             try:
@@ -95,20 +103,36 @@ username_label = Label(text="Email/Username:")
 username_label.grid(row=2,column=0)
 password_label = Label(text="Password:")
 password_label.grid(row=3,column=0)
+Symbols_label = Label(text="#Symbols")
+Symbols_label.grid(row=2,column=4)
+Numbers_label = Label(text="#Numbers")
+Numbers_label.grid(row=3,column=4)
+Letters_label = Label(text="#Letters")
+Letters_label.grid(row=4,column=4)
+Warn_label = Label(text="#The real password will be added in the password.json file in your computer#")
+Warn_label.grid(row=5,column=1,columnspan=2)
 #Entry
 website_entry = Entry(width=35)
 website_entry.grid(row=1,column=1, columnspan=1)
 website_entry.focus()
-username_entry = Entry(width=57)
-username_entry.grid(row=2,column=1, columnspan=2)
+username_entry = Entry(width=35)
+username_entry.grid(row=2,column=1, columnspan=1)
 username_entry.insert(0,"viniciusdipace2011@gmail.com")
-password_entry = Entry(width=36)
+password_entry = Entry(width=35)
 password_entry.grid(row=3,column=1)
 #Button
 add_button = Button(width=50,text = "Add",command=save_password)
 add_button.grid(row=4,column=1, columnspan=2)
-generate_button = Button(text="Generate Password", command=generate_password)
+generate_button = Button(text="Generate Password", command=generate_password, width=15)
 generate_button.grid(row=3,column=2)
-search_button = Button(text="       Search      ", command=find_password)
+search_button = Button(text="       Search      ", command=find_password, width=15)
 search_button.grid(row=1,column=2)
+#Spin box
+Num_spinbox = Spinbox(from_=0, to=12, width=5)
+Num_spinbox.grid(row=3,column=3)
+Letter_spinbox = Spinbox(from_=0, to=12, width=5)
+Letter_spinbox.grid(row=4,column=3)
+Symbol_spinbox = Spinbox(from_=0, to=12, width=5)
+Symbol_spinbox.grid(row=2,column=3)
+
 window.mainloop()
