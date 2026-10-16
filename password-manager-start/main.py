@@ -3,6 +3,12 @@ from tkinter import messagebox
 import random
 import pyperclip
 import json
+import ssl
+from email.message import EmailMessage
+import smtplib
+import os
+from dotenv import load_dotenv
+load_dotenv()
 #-----------------------------FIND PASSWORD---------------------------------------#
 def find_password():
     try:
@@ -45,9 +51,9 @@ def generate_password():
     password = "".join(password_list)
 
     encrypt = ["*" for char in password]
-
+    encrypt_text = "".join(encrypt)
     password_entry.delete(0, END)
-    password_entry.insert(0, encrypt)
+    password_entry.insert(0, encrypt_text)
     pyperclip.copy(password)
     return password
 # ---------------------------- SAVE PASSWORD ------------------------------- #
@@ -84,8 +90,32 @@ def save_password():
                     #Saving updated data
                     json.dump(data, data_file, indent=4)
             finally:
+                message_path = "message"
+                with (open(message_path, "r", encoding="utf-8") as message_file):
+                    message = message_file.read().replace("[aplicativo]", website_entry.get()
+                                                          ).replace("[senha]", password)
                 website_entry.delete(0, END)
                 password_entry.delete(0, END)
+                is_ok2 = messagebox.askokcancel(title="Send email?",
+                                               message=f"Do you want to send an email to: {username_entry.get()}?")
+                if is_ok2:
+                    # Monta o e-mail de forma protegida contra Injeção de Cabeçalho (CRLF)
+                    my_email = os.getenv("MY_EMAIL")
+                    my_password = os.getenv("MY_PASSWORD")
+                    email_message = message
+                    msg = EmailMessage()
+                    msg.set_content(email_message)
+                    msg["Subject"] = "Sua nova senha está salva"
+                    msg["From"] = os.getenv("MY_EMAIL")
+                    msg["To"] = username_entry.get()
+                    # Cria um contexto SSL seguro forçando validação moderna (RFC 8997)
+                    context = ssl.create_default_context()
+                    # Especifica explicitamente a porta 587 (STARTTLS)
+                    with smtplib.SMTP("smtp.gmail.com", port=587) as connection:
+                        connection.starttls(context=context)  # Aplica o contexto seguro
+                        connection.login(user=str(my_email), password=str(my_password))
+                        connection.send_message(msg)
+
 
 # ---------------------------- UI SETUP ------------------------------- #
 window = Tk()
@@ -117,7 +147,6 @@ website_entry.grid(row=1,column=1, columnspan=1)
 website_entry.focus()
 username_entry = Entry(width=35)
 username_entry.grid(row=2,column=1, columnspan=1)
-
 password_entry = Entry(width=35)
 password_entry.grid(row=3,column=1)
 #Button
