@@ -117,7 +117,7 @@ website_entry.grid(row=1,column=1, columnspan=1)
 website_entry.focus()
 username_entry = Entry(width=35)
 username_entry.grid(row=2,column=1, columnspan=1)
-username_entry.insert(0,"viniciusdipace2011@gmail.com")
+
 password_entry = Entry(width=35)
 password_entry.grid(row=3,column=1)
 #Button
